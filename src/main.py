@@ -20,21 +20,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pygame_screen_record import ScreenRecorder, RecordingSaver
+from pygame_screen_record import ScreenRecorder # Module created by Rashid Harvey (@theRealProHacker on github)
 import pygame
 import json
+import logging
 from utils import *
 import math
 import time
 import sys
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename="log.log")
+
+def inform(msg, exception, exit_code=1):
+    print("\n",msg,"\nMore info on exception can be found in log file.")
+    logging.error(msg=f"Exception that caused exit of the application:\n{str(exception)}")
+    sys.exit(exit_code)
+
+CONFIG_FILE_NAME = "config.json"
 pygame.init()
-config_file = json.load(open("config.json", "r"))
+try:
+    config_file = json.load(open(CONFIG_FILE_NAME, "r"))
+    logging.info(msg=f"Selected config file {CONFIG_FILE_NAME}")
+except Exception as e:
+    inform(f"Error while reading file {CONFIG_FILE_NAME}", e)
 
 config = config_file['config']
 SCREEN_SIZE = tuple(config["screen_size"])
 TIME_SCALE = config["time_scale"]
 FPS = config["fps"]
+SAVE_FILE = "solar_system.mp4"
 
 circle_center = (SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 2)
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -43,8 +57,12 @@ distance_font = pygame.font.SysFont("JetBrains Mono", 20)
 month_font = pygame.font.SysFont("JetBrains Mono", 40)
 debug = True
 
-recorder = ScreenRecorder(FPS)
-recorder.start_rec()
+try:
+    recorder = ScreenRecorder(FPS)
+    recorder.start_rec()
+    logging.info(msg="Started recording simulation.")
+except Exception as e:
+    inform("Error while starting recorder", e)
 
 black = (0, 0, 0)
 
@@ -58,6 +76,7 @@ try:
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                logging.info(msg="Exiting program")
                 pygame.quit()
                 sys.exit(0)
                 
@@ -98,8 +117,17 @@ try:
         pygame.time.Clock().tick(FPS)
 
 finally:
+    logging.info(msg="Exiting program")
     pygame.quit()
-    recorder.stop_rec()
-    recording = recorder.get_single_recording()
-    recording.save(("solar_system", "mp4"))
-    RecordingSaver(recording, ("cool", "mp4"))
+    save_name = SAVE_FILE.split(".")
+    try:
+        recorder.stop_rec()
+        recording = recorder.get_single_recording()
+        logging.info(msg="Successfully stopped recording")
+    except Exception as e:
+        inform("Error while stopping recorder", e)
+    try:
+        recording.save((save_name[0], save_name[1]))
+        logging.info(msg=f"Successfully saved recording into {SAVE_FILE}")
+    except Exception as e:
+        inform(f"Error while saving recording into {str(SAVE_FILE)}")
