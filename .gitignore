@@ -8,6 +8,7 @@ __pycache__/
 
 # VSCode Files
 .vscode
+.DS_STORE
 
 # Distribution / packaging
 .Python
