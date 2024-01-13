@@ -1,0 +1,74 @@
+{
+    "config": {
+        "screen_size": [1280,700],
+        "time_scale": 45.197024029511056,
+        "fps": 30,
+        "sun_radius": 80,
+        "sun_color": [255, 255, 0]
+    },
+    "planets": {
+        "mercury": {
+            "semi_major_axis": 150,
+            "semi_minor_axis": 120,
+            "color": [255,0,0],
+            "angle": 0,
+            "angular_speed": 0.04787,
+            "distance_scale": 0.000002586956522,
+            "radius": 12.199
+        },
+        "venus": {
+            "semi_major_axis": 200,
+            "semi_minor_axis": 170,
+            "color": [255,140,0],
+            "angle": 0,
+            "angular_speed": 0.03502,
+            "distance_scale": 0.000001588785047,
+            "radius": 30.259
+        },
+        "earth": {
+            "semi_major_axis": 280,
+            "semi_minor_axis": 220,
+            "color": [0,255,0],
+            "angle": 0,
+            "angular_speed": 0.02978,
+            "distance_scale": 0.000001496598639,
+            "radius": 31.855
+        },
+        "mars": {
+            "semi_major_axis": 350,
+            "semi_minor_axis": 280,
+            "color": [193,68,14],
+            "angle": 0,
+            "angular_speed": 0.02407,
+            "distance_scale": 0.000001359223301,
+            "radius": 16.948
+        },
+        "jupiter": {
+            "semi_major_axis": 430,
+            "semi_minor_axis": 350,
+            "color": [227,220,203],
+            "angle": 0,
+            "angular_speed": 0.06535,
+            "distance_scale": 0.000000723140496,
+            "radius": 50
+        },
+        "saturn": {
+            "semi_major_axis": 530,
+            "semi_minor_axis": 480,
+            "color": [234,214,184],
+            "angle": 0,
+            "angular_speed": 0.04845,
+            "distance_scale": 0.0000002,
+            "radius": 45
+        },
+        "uranus": {
+            "semi_major_axis": 600,
+            "semi_minor_axis": 550,
+            "color": [213,213,236],
+            "angle": 0,
+            "angular_speed": 0.034,
+            "distance_scale": 0.000000087931034,
+            "radius": 40
+        }
+    }
+}
