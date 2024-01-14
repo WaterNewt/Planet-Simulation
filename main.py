@@ -12,6 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
+# The full veresion of the script can be found in the COPYING file.
 # You should have received a copy of the GNU General Public License
 # along with Planet Simulation.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -20,6 +21,10 @@ import pygame
 import json
 import logging
 from utils import *
+from xlsxwriter import Workbook
+import argparse
+import csv
+from statistics import mean
 import math
 import time
 import sys
@@ -51,6 +56,10 @@ pygame.display.set_caption("Planet Simulation")
 distance_font = pygame.font.SysFont("JetBrains Mono", 20)
 month_font = pygame.font.SysFont("JetBrains Mono", 40)
 debug = True
+parser = argparse.ArgumentParser(description='Simulate the orbit of the 8 planets in our solar system.')
+parser.add_argument('--output-type', choices=['csv', 'json', 'xlsx'], default='json', help='The output file/data type.')
+parser.add_argument('--output-file', default='output', help='The output filename without the extension.')
+args = parser.parse_args()
 
 try:
     recorder = ScreenRecorder(FPS)
@@ -65,6 +74,11 @@ sun_radius = config["sun_radius"]
 sun_color = tuple(config["sun_color"])
 
 planets = config_file["planets"]
+
+orbit_counts = {planet: 0 for planet in planets}
+planet_distances = {planet: [] for planet in planets}
+mean_distances = {planet: 0 for planet in planets}
+output_data = []
 
 start = time.time()
 try:
@@ -88,6 +102,9 @@ try:
         current_month, current_year = day_month(duration,1)
         pygame.draw.circle(screen, sun_color, circle_center, sun_radius)
         for planet, data in planets.items():
+            if data["angle"] >= 2 * math.pi:
+                data["angle"] = 0
+                orbit_counts[planet] += 1
             pygame.draw.ellipse(screen, (255, 255, 255), (circle_center[0] - data["semi_major_axis"],
                                                         circle_center[1] - data["semi_minor_axis"],
                                                         data["semi_major_axis"] * 2,
@@ -100,9 +117,9 @@ try:
             if debug:pygame.draw.line(screen, data["color"], circle_center, (x, y), 2)
 
             distance = math.sqrt((x - circle_center[0])**2 + (y - circle_center[1])**2)
+            planet_distances[planet].append(distance)
 
             data["angle"] += data["angular_speed"]
-
             distance_text = distance_font.render(f"{int((distance/data['distance_scale'])/1000000)}*10^6 km", True, data["color"])
             if debug:screen.blit(distance_text, (x + 50, y - 50))
         month_text = month_font.render(f"Month: {current_month} Year: {current_year}", True, (255, 255, 255))
@@ -112,6 +129,37 @@ try:
         pygame.time.Clock().tick(FPS)
 
 finally:
+    for planet, data in planet_distances.items():
+        mean_distances[planet] = mean(data)
+    for i in planets:
+        output_data.append({"name": i, "mean_distance": mean_distances[i], "orbit_count": orbit_counts[i]})
+    # Store output
+    if args.output_type=="json":
+        with open(f"{args.output_file}.{args.output_type}", "w") as f:
+            json.dump(output_data, f, indent=4)
+    elif args.output_type=="csv":
+        fieldnames = output_data[0].keys()
+        with open(f"{args.output_file}.{args.output_type}", 'w', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(output_data)
+    elif args.output_type=="xlsx":
+        ordered_list = list(output_data[0].keys())
+        wb = Workbook(f"{args.output_file}.{args.output_type}")
+        ws = wb.add_worksheet()
+        first_row=0
+        for header in ordered_list:
+            col=ordered_list.index(header)
+            ws.write(first_row,col,header)
+        # XLSX Code snipped from stackoverflow (user Fatih1923)
+        row=1
+        for data in output_data:
+            for _key,_value in data.items():
+                col=ordered_list.index(_key)
+                ws.write(row,col,_value)
+            row+=1
+        wb.close()
+
     logging.info(msg="Exiting program")
     pygame.quit()
     save_name = SAVE_FILE.split(".")
