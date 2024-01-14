@@ -159,7 +159,6 @@ finally:
                 ws.write(row,col,_value)
             row+=1
         wb.close()
-
     logging.info(msg="Exiting program")
     pygame.quit()
     save_name = SAVE_FILE.split(".")
@@ -174,3 +173,4 @@ finally:
         logging.info(msg=f"Successfully saved recording into {SAVE_FILE}")
     except Exception as e:
         inform(f"Error while saving recording into {str(SAVE_FILE)}")
+    print(f"\nOutput data was written to {args.output_file}.{args.output_type}")
