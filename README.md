@@ -21,12 +21,15 @@
 A simple, but cool Python simulation of the 8 planets in our solar system.
 
 - [Installation](#installation)
+- [Usage](#usage)
 - [Contributing](.github/CONTRIBUTING.md)
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 - [License](#license)
-- [License File](./LICENSE)
+- [License File](./COPYING)
 
 ## Installation
+[<img src="https://www.gnu.org/graphics/gplv3-or-later-sm.png" width=60></img>](https://www.gnu.org/licenses/gpl-3.0.html)
+
 First, clone the repository
 
 ```git clone https://github.com/waternewt/planet-simulation```
@@ -34,7 +37,11 @@ First, clone the repository
 `cd` into the directory and then run the bash script with `bash run.sh`
 If the bash script fails, you can run it manually by `cd`ing into the `/src` folder and then running `main.py` python script.
 
+# Usage
+After you exit the pygame window, it will save a json file with the output data. If you instead want to save it into a CSV or an Excel spreadsheet, you can use the `--output-type` argument. For now the only supported datatypes are json/csv/xlsx. You can use the `--output-file` argument to specify the name of the file (without the extension) the data will be saved to. By default (if you don't specify the argument), the output file value will be set to <b>output</b>. Other datatypes may be added in the future.
+
 ## License
+
 Copyright (C) 2024 Yunus Ruzmetov
 
 This program is free software distributed under the terms of the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
