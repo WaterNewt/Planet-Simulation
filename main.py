@@ -55,12 +55,13 @@ screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("Planet Simulation")
 distance_font = pygame.font.SysFont("JetBrains Mono", 20)
 month_font = pygame.font.SysFont("JetBrains Mono", 40)
-debug = True
 parser = argparse.ArgumentParser(description='Simulate the orbit of the 8 planets in our solar system.')
 parser.add_argument('--output-type', choices=['csv', 'json', 'xlsx'], default='json', help='The output file/data type.')
 parser.add_argument('--output-file', default='output', help='The output filename without the extension.')
+parser.add_argument('--verbose', default='1', choices=['0', '1', '2'], help='Verbosity level of the simulation')
 args = parser.parse_args()
 
+debug = int(args.verbose)
 try:
     recorder = ScreenRecorder(FPS)
     recorder.start_rec()
@@ -121,9 +122,15 @@ try:
 
             data["angle"] += data["angular_speed"]
             distance_text = distance_font.render(f"{int((distance/data['distance_scale'])/1000000)}*10^6 km", True, data["color"])
-            if debug:screen.blit(distance_text, (x + 50, y - 50))
+            name_text = distance_font.render(str(planet), True, data["color"])
+            angle_text = distance_font.render(str(int(angle))+"°", True, data["color"])
+            screen.blit(name_text, (x + 50, y - 50))
+            if debug>1:screen.blit(angle_text, (x + 50, y - 10))
+            if debug>0:screen.blit(distance_text, (x + 50, y - 30))
         month_text = month_font.render(f"Month: {current_month} Year: {current_year}", True, (255, 255, 255))
-        if debug:screen.blit(month_text, (0, 0))
+        total_orbit = month_font.render(f"Total orbits: {str(int(sum(orbit_counts.values())))}", True, (255, 255, 255))
+        if debug>0:screen.blit(month_text, (0, 0))
+        if debug>1:screen.blit(total_orbit, (0, 50))
 
         pygame.display.flip()
         pygame.time.Clock().tick(FPS)
