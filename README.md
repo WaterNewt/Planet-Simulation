@@ -21,6 +21,7 @@
 [<img src="https://www.gnu.org/graphics/gplv3-or-later-sm.png" width=60></img>](https://www.gnu.org/licenses/gpl-3.0.html)
 -
 A simple, but cool Python simulation of the 8 planets in our solar system.
+This project was inspired by [TechWithTim](https://www.techwithtim.net)
 
 - [Installation](#installation)
 - [Usage](#usage)
