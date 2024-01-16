@@ -29,7 +29,8 @@ import math
 import time
 import sys
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename="log.log")
+LOGFILE = "log.log"
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=LOGFILE)
 
 def inform(msg, exception, exit_code=1):
     print("\n",msg,"\nMore info on exception can be found in log file.")
@@ -49,6 +50,8 @@ SCREEN_SIZE = tuple(config["screen_size"])
 TIME_SCALE = config["time_scale"]
 FPS = config["fps"]
 SAVE_FILE = "solar_system.mp4"
+with open(LOGFILE, "w") as f:
+    f.write("")
 
 circle_center = (SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 2)
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -133,7 +136,10 @@ try:
         if debug>1:screen.blit(total_orbit, (0, 50))
 
         pygame.display.flip()
-        pygame.time.Clock().tick(FPS)
+        try:
+            pygame.time.Clock().tick(FPS)
+        except KeyboardInterrupt:
+            sys.exit(0)
 
 finally:
     for planet, data in planet_distances.items():
