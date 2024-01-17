@@ -16,17 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Planet Simulation.  If not, see <http://www.gnu.org/licenses/>.
 
-from pygame_screen_record import ScreenRecorder # Module created by Rashid Harvey (@theRealProHacker on github)
-import pygame
-import json
 import logging
-from utils import *
-from xlsxwriter import Workbook
-import argparse
-import csv
-from statistics import mean
-import math
-import time
 import sys
 
 LOGFILE = "log.log"
@@ -37,19 +27,55 @@ def inform(msg, exception, exit_code=1):
     logging.error(msg=f"Exception that caused exit of the application:\n{str(exception)}")
     sys.exit(exit_code)
 
+try:
+    from pygame_screen_record import ScreenRecorder # Module created by Rashid Harvey (@theRealProHacker on github)
+    from xlsxwriter import Workbook
+    import pygame
+    import json
+    from utils import *
+    import argparse
+    import csv
+    from statistics import mean
+    import math
+    import time
+except ModuleNotFoundError as e:
+    inform("Run `pip3 install -r requirements.txt` to installed required libraries.", e)
+
+parser = argparse.ArgumentParser(description='Simulate the orbit of the 8 planets in our solar system.')
+parser.add_argument('--output-type', choices=['csv', 'json', 'xlsx'], default='json', help='The output file/data type.')
+parser.add_argument('--output-file', default='output', help='The output filename without the extension.')
+parser.add_argument("--screen-size", required=False, help="The size of the window in pixels (1280x720)")
+parser.add_argument("--text-font", required=False, help="The font of the text on the window")
+parser.add_argument('--verbose', default='1', choices=['0', '1', '2'], help='Verbosity level of the simulation')
+args = parser.parse_args()
+
+
 CONFIG_FILE_NAME = "config.json"
-pygame.init()
 try:
     config_file = json.load(open(CONFIG_FILE_NAME, "r"))
     logging.info(msg=f"Selected config file {CONFIG_FILE_NAME}")
 except Exception as e:
     inform(f"Error while reading file {CONFIG_FILE_NAME}", e)
+try:
+    config = config_file['config']
+except KeyError as e:
+    inform("Missing config file keys.", e)
 
-config = config_file['config']
-SCREEN_SIZE = tuple(config["screen_size"])
-TIME_SCALE = config["time_scale"]
-FPS = config["fps"]
-SAVE_FILE = "solar_system.mp4"
+if not args.screen_size:
+    SCREEN_SIZE = tuple(config["screen_size"])
+else:
+    SCREEN_SIZE = tuple([int(i) for i in str(args.screen_size).split("x")])
+    print(SCREEN_SIZE)
+try:
+    TIME_SCALE = config["time_scale"]
+    FPS = config["fps"]
+    SAVE_FILE = "solar_system.mp4"
+except KeyError as e:
+    inform("Missing keys in config file.", e)
+
+
+pygame.init()
+
 with open(LOGFILE, "w") as f:
     f.write("")
 
@@ -58,11 +84,6 @@ screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("Planet Simulation")
 distance_font = pygame.font.SysFont("JetBrains Mono", 20)
 month_font = pygame.font.SysFont("JetBrains Mono", 40)
-parser = argparse.ArgumentParser(description='Simulate the orbit of the 8 planets in our solar system.')
-parser.add_argument('--output-type', choices=['csv', 'json', 'xlsx'], default='json', help='The output file/data type.')
-parser.add_argument('--output-file', default='output', help='The output filename without the extension.')
-parser.add_argument('--verbose', default='1', choices=['0', '1', '2'], help='Verbosity level of the simulation')
-args = parser.parse_args()
 
 debug = int(args.verbose)
 try:
@@ -74,14 +95,22 @@ except Exception as e:
 
 black = (0, 0, 0)
 
-sun_radius = config["sun_radius"]
-sun_color = tuple(config["sun_color"])
+try:
+    sun_radius = config["sun_radius"]
+    sun_color = tuple(config["sun_color"])
+except KeyError as e:
+    inform("Missing keys in config file.", e)
 
-planets = config_file["planets"]
+try:
+    planets = config_file["planets"]
+except KeyError as e:
+    inform("Missing planet key in config file.")
 
 orbit_counts = {planet: 0 for planet in planets}
 planet_distances = {planet: [] for planet in planets}
+planet_speeds = {planet: [] for planet in planets}
 mean_distances = {planet: 0 for planet in planets}
+mean_speeds = {planet: 0 for planet in planets}
 output_data = []
 
 start = time.time()
@@ -106,6 +135,10 @@ try:
         current_month, current_year = day_month(duration,1)
         pygame.draw.circle(screen, sun_color, circle_center, sun_radius)
         for planet, data in planets.items():
+            m_radius = data["radius"] / data["distance_scale"]
+            rps_angular_velocity = data["angular_speed"] * FPS
+            mps_velocity = m_radius*rps_angular_velocity
+            planet_speeds[planet].append(float(mps_velocity))
             if data["angle"] >= 2 * math.pi:
                 data["angle"] = 0
                 orbit_counts[planet] += 1
@@ -144,8 +177,10 @@ try:
 finally:
     for planet, data in planet_distances.items():
         mean_distances[planet] = mean(data)
+    for planet, data in planet_speeds.items():
+        mean_speeds[planet] = mean(data)
     for i in planets:
-        output_data.append({"name": i, "mean_distance": mean_distances[i], "orbit_count": orbit_counts[i]})
+        output_data.append({"name": i, "mean_distance": mean_distances[i], "mean_velocity": mean_speeds[i], "orbit_count": orbit_counts[i]})
     # Store output
     if args.output_type=="json":
         with open(f"{args.output_file}.{args.output_type}", "w") as f:
