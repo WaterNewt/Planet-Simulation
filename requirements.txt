@@ -1,2 +1,3 @@
 pygame
 pygame_screen_record
+xlsxwriter
